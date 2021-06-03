@@ -9,5 +9,5 @@ COPY requirements_dev.txt ./
 
 RUN pip install --no-cache-dir -r requirements_dev.txt
 
-CMD ["make","clean-build","dist"]
+CMD ["make","clean-build","dist","patch"]
 

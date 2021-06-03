@@ -13,6 +13,7 @@ class FtxClient:
         self._api_key = api_key
         self._api_secret = api_secret
         self._subaccount_name = subaccount_name
+        self.timeout = 10
 
     def _get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Any:
         if params:
@@ -30,7 +31,7 @@ class FtxClient:
     def _request(self, method: str, path: str, **kwargs) -> Any:
         request = Request(method, self._ENDPOINT + path, **kwargs)
         self._sign_request(request)
-        response = self._session.send(request.prepare())
+        response = self._session.send(request.prepare(), timeout=self.timeout)
         return self._process_response(response)
 
     def _sign_request(self, request: Request) -> None:
@@ -68,8 +69,8 @@ class FtxClient:
     def get_orderbook(self, market: str, depth: int = None) -> dict:
         return self._get(f'markets/{market}/orderbook', {'depth': depth})
 
-    def get_trades(self, market: str) -> dict:
-        return self._get(f'markets/{market}/trades')
+    def get_trades(self, market: str, start_time: str = None, end_time: str = None, limit: int = None) -> dict:
+        return self._get(f'markets/{market}/trades', {'start_time': start_time, 'end_time': end_time,'limit': limit})
 
     def get_account_info(self) -> dict:
         return self._get(f'account')
@@ -155,8 +156,8 @@ class FtxClient:
                                         'limitOrdersOnly': limit_orders,
                                         })
 
-    def get_fills(self) -> List[dict]:
-        return self._get(f'fills')
+    def get_fills(self, market: str = None, start_time: str = None, end_time: str = None, limit: int = None) -> List[dict]:
+        return self._get(f'fills', {'market': market,'start_time': start_time, 'end_time': end_time,'limit': limit})
 
     def get_balances(self) -> List[dict]:
         return self._get('wallet/balances')
