@@ -78,6 +78,9 @@ class FtxClient:
     def get_open_orders(self, market: str = None) -> List[dict]:
         return self._get(f'orders', {'market': market})
 
+    def get_open_conditional_orders(self, market: str = None) -> List[dict]:
+        return self._get(f'conditional_orders', {'market': market})
+
     def get_order_history(self, market: str = None, side: str = None, order_type: str = None, start_time: float = None,
                           end_time: float = None) -> List[dict]:
         return self._get(f'orders/history',
@@ -107,8 +110,6 @@ class FtxClient:
             **({'clientId': client_order_id} if client_order_id is not None else {}),
         })
 
-    def get_conditional_orders(self, market: str = None) -> List[dict]:
-        return self._get(f'conditional_orders', {'market': market})
 
     def place_order(self, market: str, side: str, price: float, size: float, type: str = 'limit',
                     reduce_only: bool = False, ioc: bool = False, post_only: bool = False,
@@ -125,8 +126,8 @@ class FtxClient:
                                      })
 
     def place_conditional_order(
-            self, market: str, side: str, size: float, type: str = 'stop',
-            limit_price: float = None, reduce_only: bool = False, cancel: bool = True,
+            self, market: str, side: str, size: float, type: str = None,
+            limit_price: float = None, reduce_only: bool = False, retry_until_filled: bool = True,
             trigger_price: float = None, trail_value: float = None
     ) -> dict:
         """
@@ -143,8 +144,8 @@ class FtxClient:
 
         return self._post('conditional_orders',
                           {'market': market, 'side': side, 'triggerPrice': trigger_price,
-                           'size': size, 'reduceOnly': reduce_only, 'type': 'stop',
-                           'cancelLimitOnTrigger': cancel, 'orderPrice': limit_price})
+                           'size': size, 'reduceOnly': reduce_only, 'type': type,
+                           'retryUntilFilled': retry_until_filled, 'orderPrice': limit_price})
 
     def cancel_order(self, order_id: str) -> dict:
         return self._delete(f'orders/{order_id}')
