@@ -1,5 +1,6 @@
 from typing import Optional, Dict, Any, List
 from requests import Request, Session, Response
+from requests.exceptions import RequestException, HTTPError
 from ciso8601 import parse_datetime
 import hmac, time
 import urllib.parse
@@ -55,8 +56,14 @@ class FtxClient:
             raise
         else:
             if not data['success']:
-                raise Exception(data['error'])
+                raise self._get_exception_error(data['error'], response)
             return data['result']
+
+    def _get_exception_error(self, message, response):
+        messages = {
+                'Too many requests': HTTPError(f'{response.status_code} {response.reason} {message}'),
+             }
+        return messages.get(message, Exception(f'{response.status_code} {response.reason} {message}'))
 
     def list_futures(self) -> List[dict]:
         return self._get('futures')
